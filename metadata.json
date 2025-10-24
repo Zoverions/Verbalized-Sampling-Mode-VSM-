@@ -1,0 +1,5 @@
+{
+  "name": "Verbalized Sampling Mode (VSM) Explorer",
+  "description": "An interactive web application to explain and demonstrate the Verbalized Sampling Mode (VSM) for AI models, showcasing how it surfaces multiple reasoning paths to improve transparency and auditability.",
+  "requestFramePermissions": []
+}
