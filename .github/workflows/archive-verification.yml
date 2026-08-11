@@ -1,0 +1,52 @@
+name: VSM Explorer Archive Verification
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archive-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+
+      - name: Verify archived credential and claim boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))"
+          test -f PORTFOLIO_STATUS.md
+          grep -Fq '0d3b660190b9666ace758360d49fc50734f29974' PORTFOLIO_STATUS.md
+          grep -Fq "host: '127.0.0.1'" vite.config.ts
+          if grep -Fq 'process.env.API_KEY' vite.config.ts; then
+            echo 'Browser API key injection remains in Vite config.' >&2
+            exit 1
+          fi
+          if grep -Fq 'GEMINI_API_KEY' vite.config.ts; then
+            echo 'Browser Gemini key injection remains in Vite config.' >&2
+            exit 1
+          fi
+          if grep -Fq 'GoogleGenAI' services/geminiService.ts; then
+            echo 'Direct browser Gemini client remains enabled.' >&2
+            exit 1
+          fi
+          grep -Fq 'remote model execution is disabled' services/geminiService.ts
+          grep -Fq 'does not read hidden chain-of-thought' components/Introduction.tsx
+          grep -Fq 'Model-Generated Score' components/AlternativeResponseCard.tsx
+          grep -Fq 'Generated Rationale Summary' components/AlternativeResponseCard.tsx
