@@ -1,20 +1,57 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Verbalized Sampling Mode Explorer — archived output-diversity prototype
 
-# Run and deploy your AI Studio app
+> **Status:** Historical AI Studio concept shell. Remote Gemini execution is disabled in the archived source because the original implementation bundled `GEMINI_API_KEY` into browser code. This repository does not expose hidden chain-of-thought, latent reasoning states, or calibrated internal confidence.
 
-This contains everything you need to run your app locally.
+Pre-archive snapshot:
 
-View your app in AI Studio: https://ai.studio/apps/drive/1_OrYNlkVwwDZn_SCWRwApIqYzcSqwbAj
+`0d3b660190b9666ace758360d49fc50734f29974`
 
-## Run Locally
+## What the original prototype actually did
 
-**Prerequisites:**  Node.js
+The historical `services/geminiService.ts` asked Gemini 2.5 Flash to generate:
 
+- 3–5 alternative answers to one query;
+- a numeric `probability` field for each answer;
+- 2–5 short rationale bullets in a field named `reasoningTrace`.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Those fields were **prompted model outputs**. The implementation did not read model activations, hidden reasoning states, logits, calibrated confidence, or privileged chain-of-thought.
+
+The earlier UI labels “Internal Probability,” “Reasoning Trace,” and “Exposing the AI’s Internal Dialogue” therefore exceeded what the implementation could establish. The archival branch relabels those fields as a **model-generated score** and **generated rationale summary**.
+
+## Security correction
+
+The original Vite configuration injected `GEMINI_API_KEY` into the frontend bundle via `process.env.API_KEY`. A user who supplied a real key could expose it to browser clients.
+
+The archived source state removes that injection, binds the Vite development server to loopback, and intentionally disables `generateVSMResponse()` rather than preserving an unsafe browser credential path.
+
+A future maintained implementation must place model-provider credentials behind an authenticated server-side boundary and must define abuse/rate/privacy controls appropriate to the deployment.
+
+## Concept worth preserving
+
+The useful research/UI idea is **verbalized output diversity**:
+
+- generate multiple materially different candidate answers;
+- compare their trade-offs rather than hiding all alternatives behind one final response;
+- optionally attach externally defined scores or calibration information;
+- keep human synthesis above the displayed alternatives;
+- distinguish generated rationale summaries from hidden model reasoning.
+
+A rigorous future version should specify how candidates are independently sampled, how diversity is measured, how scores are produced/calibrated, and what evaluation demonstrates improved decisions or robustness.
+
+## What this repository is not
+
+It is not evidence that:
+
+- a model has exposed its private/internal chain-of-thought;
+- the displayed score is internal confidence;
+- the score is calibrated probability;
+- multiple verbalized answers faithfully enumerate the model’s latent possibility space;
+- a rationale summary is causally faithful to the model’s hidden computation.
+
+## Portfolio disposition
+
+Archive this generated explorer shell. Preserve the VSM/output-diversity concept and its negative findings in portfolio provenance rather than maintaining this frontend as a canonical product.
+
+Do not derive AXIOM capability, policy, trust, or execution authority from generated VSM scores or rationale text.
+
+See [PORTFOLIO_STATUS.md](PORTFOLIO_STATUS.md).
